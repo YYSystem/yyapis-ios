@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package yysystem;
+
+option cc_enable_arenas = true;
+option java_multiple_files = true;
+
+service YYSpeech {
+  rpc RecognizeStream(stream StreamRequest) returns (stream StreamResponse) {};
+  rpc Recognize(Request) returns (Response) {};
+  rpc Morphologize(MorphologizeRequest) returns (MorphologizeResponse) {};
+}
+
+message Status {
+  int32 code = 1;
+  string message = 2;
+  string details = 3;
+}
+
+message Config {
+  string encoding = 1;
+  int32 sample_rate_hertz = 2;
+  int32 language_code = 3;
+  bool enable_word = 4;
+  int32 model = 5;
+  repeated string translateTo = 6;
+  bool enable_ruby = 7;
+}
+
+message Audio {
+  string content = 1;
+}
+
+message Request {
+  Config config = 1;
+  Audio audio = 2;
+}
+
+message RubyInfo {
+  int32 start_index = 1;
+  int32 end_index = 2;
+  string rb = 3;
+  string rt = 4;
+  string pronunciation = 5;
+  repeated string other_readings = 6;
+}
+
+message WordInfo {
+  double start_time = 1;
+  double end_time = 2;
+  string word = 3;
+  string reading = 4;
+  string part_of_speech = 5;
+  string pronunciation = 6;
+}
+
+message Result {
+  string transcript = 1;
+  repeated WordInfo words = 2;
+  repeated RubyInfo rubies = 3;
+}
+
+message Response {
+  repeated Result results = 1;
+}
+
+message Dictionary {
+  string word = 1;
+  string reading = 2;
+  bool disabled = 3;
+  // Overrides the type set at the DictionaryContext level.
+  string type = 4;
+  string pattern = 5;
+  string search_word = 6;
+}
+
+message DictionaryContext {
+  repeated Dictionary dictionaries = 1;
+  string type = 2;
+}
+
+message Phrase {
+  string value = 1;
+  // Overrides the boost set at the SpeechContext level.
+  float boost = 2; //
+}
+
+message PhraseContext {
+  repeated Phrase phrases = 1;
+  float boost = 2;
+}
+
+message StreamingConfig {
+  string encoding = 1;
+  int32 sample_rate_hertz = 2;
+  int32 language_code = 3;
+  bool enable_word = 4;
+  int32 model = 5;
+  bool enable_interim_results = 6;
+  repeated string translate_to = 7;
+  bool enable_ruby = 8;
+  int32 audio_channel_count = 9;
+  int32 segmentation_silence_timeout_ms = 10;
+  repeated DictionaryContext dictionary_contexts = 11;
+  repeated PhraseContext phrase_contexts = 12;
+}
+
+message StreamRequest {
+  bytes audiobytes = 1;
+  StreamingConfig streaming_config = 2;
+}
+
+message StreamResult {
+  bool is_final = 1;
+  string transcript = 2;
+  repeated WordInfo words = 3;
+  repeated string translations = 4;
+  repeated RubyInfo rubies = 5;
+  string result_id = 6;
+  string speaker_id = 7;
+}
+
+message StreamResponse {
+  Status error = 1;
+  StreamResult result = 2;
+  StreamingConfig streaming_config = 3;
+  string request_id = 4;
+}
+
+message MorphologizeRequest {
+  string text = 1;
+}
+
+message MorphologizeResult {
+  repeated WordInfo words = 1;
+  repeated RubyInfo rubies = 2;
+}
+message MorphologizeResponse {
+  MorphologizeResult result = 1;
+}
+
